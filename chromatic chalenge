@@ -1,0 +1,156 @@
+import tkinter as tk
+import tkinter.font as font
+import random
+
+# List of colors
+colors = ["Red", "Orange", "White", "Black", "Green", "Blue", "Brown", "Purple", "Cyan", "Yellow", "Pink", "Magenta"]
+
+# Game variables
+timer = 60
+score = 0
+displayed_word_color = ''
+selected_mode = 'Classic'  # Default mode
+selected_level = 'Medium'  # Default level
+level_timers = {
+    'Easy': 60,
+    'Medium': 45,
+    'Hard': 30
+}
+level_colors = {
+    'Easy': 6,
+    'Medium': 8,
+    'Hard': len(colors)
+}
+
+# Function to start the game
+def startGame():
+    global displayed_word_color, timer
+    if timer == level_timers[selected_level]:
+        startCountDown()
+        displayed_word_color = random.choice(colors).lower()
+        if selected_mode == 'Classic':
+            display_words.config(text=random.choice(colors), fg=displayed_word_color)
+        elif selected_mode == 'Reverse':
+            word = random.choice(colors)
+            display_words.config(text=word, fg=random.choice(colors).lower())
+        color_entry.bind('<Return>', displayNextWord)
+
+# Function to reset the game
+def resetGame():
+    global timer, score, displayed_word_color
+    timer = level_timers[selected_level]
+    score = 0
+    displayed_word_color = ''
+    game_score.config(text="Your Score: " + str(score))
+    display_words.config(text='')
+    time_left.config(text="Game Ends in: -")
+    color_entry.delete(0, tk.END)
+
+# Function to start countdown
+def startCountDown():
+    global timer
+    if timer >= 0:
+        time_left.config(text="Game Ends in: " + str(timer) + "s")
+        timer -= 1
+        if timer == -1:
+            time_left.config(text="Game Over!!!")
+        else:
+            time_left.after(1000, startCountDown)
+
+# Function to display next word based on mode
+def displayNextWord(event):
+    global displayed_word_color
+    global score
+    if timer > 0:
+        user_input = color_entry.get().lower()
+        if selected_mode == 'Classic':
+            # Check if the user input matches the color of the displayed word
+            if displayed_word_color == user_input:
+                score += 1
+                game_score.config(text="Your Score: " + str(score))
+        elif selected_mode == 'Reverse':
+            # Check if the user input matches the word (ignoring its color)
+            if display_words.cget("text").lower() == user_input:
+                score += 1
+                game_score.config(text="Your Score: " + str(score))
+        
+        color_entry.delete(0, tk.END)
+        displayed_word_color = random.choice(colors).lower()
+        if selected_mode == 'Classic':
+            display_words.config(text=random.choice(colors), fg=displayed_word_color)
+        elif selected_mode == 'Reverse':
+            word = random.choice(colors)
+            display_words.config(text=word, fg=random.choice(colors).lower())
+
+# Function to set the selected mode
+def setMode(mode):
+    global selected_mode
+    selected_mode = mode
+    mode_label.config(text=f"Mode: {selected_mode}")
+    resetGame()
+
+# Function to set the selected level
+def setLevel(level):
+    global selected_level
+    selected_level = level
+    level_label.config(text=f"Level: {selected_level}")
+    resetGame()
+
+# Set up the GUI
+my_window = tk.Tk()
+my_window.title("Chromatic Challenge: Beat The Clock")
+my_window.geometry("600x400")
+
+app_font = font.Font(family='Helvetica', size=20)
+title_text = "Chromatic Challenge: Beat The Clock"
+title = tk.Label(my_window, text=title_text, font=app_font, fg="Magenta")
+title.pack()
+
+app_font = font.Font(family='Helvetica', size=12)
+game_description_text = "Game Description: Enter the color of the words displayed below. \n And keep in mind not to enter the word text itself"
+game_description = tk.Label(my_window, text=game_description_text, font=app_font, fg="Blue")
+game_description.pack()
+
+game_score = tk.Label(my_window, text="Your Score: " + str(score), font=font.Font(size=16), fg="red")
+game_score.pack()
+
+display_words = tk.Label(my_window, font=font.Font(size=28), pady=10)
+display_words.pack()
+
+time_left = tk.Label(my_window, text="Game Ends in: -", font=font.Font(size=14), fg="green")
+time_left.pack()
+
+color_entry = tk.Entry(my_window, width=30)
+color_entry.pack(pady=10)
+
+# Buttons for mode selection
+mode_frame = tk.Frame(my_window)
+mode_frame.pack(pady=10)
+
+tk.Button(mode_frame, text="Classic Mode", command=lambda: setMode('Classic')).pack(side=tk.LEFT, padx=10)
+tk.Button(mode_frame, text="Reverse Mode", command=lambda: setMode('Reverse')).pack(side=tk.LEFT, padx=10)
+
+mode_label = tk.Label(my_window, text="Mode: Classic", font=font.Font(size=12))
+mode_label.pack()
+
+# Buttons for level selection
+level_frame = tk.Frame(my_window)
+level_frame.pack(pady=10)
+
+tk.Button(level_frame, text="Easy", command=lambda: setLevel('Easy')).pack(side=tk.LEFT, padx=10)
+tk.Button(level_frame, text="Medium", command=lambda: setLevel('Medium')).pack(side=tk.LEFT, padx=10)
+tk.Button(level_frame, text="Hard", command=lambda: setLevel('Hard')).pack(side=tk.LEFT, padx=10)
+
+level_label = tk.Label(my_window, text="Level: Medium", font=font.Font(size=12))
+level_label.pack()
+
+btn_frame = tk.Frame(my_window, width=80, height=40, bg='yellow')
+btn_frame.pack(side=tk.BOTTOM)
+
+start_button = tk.Button(btn_frame, text="Start", width=20, fg="black", bg="purple", bd=0, padx=20, pady=10, command=startGame)
+start_button.grid(row=0, column=0)
+
+reset_button = tk.Button(btn_frame, text="Reset", width=20, fg="black", bg="orange", bd=0, padx=20, pady=10, command=resetGame)
+reset_button.grid(row=0, column=1)
+
+my_window.mainloop()
